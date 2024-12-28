@@ -67,20 +67,44 @@
   <button id="cancelButton" onclick="cancelScan()">中止</button>
 
   <script>
-    // カメラ映像の取得とバーコードスキャン
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(function(stream) {
-        const video = document.getElementById('video');
-        video.srcObject = stream;
-        video.play();
-      })
-      .catch(function(error) {
-        console.error("カメラの取得に失敗しました:", error);
-        alert("カメラの取得に失敗しました。エラー: " + error.message);
-      });
-
     // スキャン中のフラグ
     let isScanning = true;
+
+    // 背面カメラを選択して起動する関数
+    function startCamera() {
+      navigator.mediaDevices.enumerateDevices().then(devices => {
+        let videoDeviceId = null;
+
+        // カメラデバイスを見つけて背面カメラを選択
+        devices.forEach(device => {
+          if (device.kind === 'videoinput') {
+            if (device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear')) {
+              videoDeviceId = device.deviceId;
+            }
+          }
+        });
+
+        // 背面カメラが見つかった場合、そのカメラを使用
+        if (videoDeviceId) {
+          navigator.mediaDevices.getUserMedia({
+            video: {
+              deviceId: videoDeviceId
+            }
+          }).then(function(stream) {
+            const video = document.getElementById('video');
+            video.srcObject = stream;
+            video.play();
+            scanBarcode();  // カメラが起動したらスキャンを開始
+          }).catch(function(error) {
+            alert("カメラの取得に失敗しました。エラー: " + error.message);
+          });
+        } else {
+          alert("背面カメラが見つかりませんでした。");
+        }
+      }).catch(function(error) {
+        alert("デバイスの取得に失敗しました。エラー: " + error.message);
+      });
+    }
 
     // 中止ボタンが押された時の処理
     function cancelScan() {
@@ -123,11 +147,12 @@
       audio.play();
     }
 
-    // 最初にスキャン開始
-    scanBarcode();
+    // 最初にカメラを起動
+    startCamera();
   </script>
 
   <!-- Barcode scanning library -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 </body>
 </html>
+
