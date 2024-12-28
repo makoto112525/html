@@ -67,13 +67,6 @@
   <button id="cancelButton" onclick="cancelScan()">中止</button>
 
   <script>
-    // カスタムユーザーエージェントを設定する
-    Object.defineProperty(navigator, 'userAgent', {
-      get: function() {
-        return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36';
-      }
-    });
-
     // カメラ映像の取得とバーコードスキャン
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(function(stream) {
@@ -92,7 +85,10 @@
     function cancelScan() {
       isScanning = false;  // スキャン停止
       alert("スキャンが中止されました。");
-      FileMaker.PerformScript("IOS_ProcessBarcodeResult_back");  // FileMakerスクリプトに通知
+      
+      // FileMaker Go の URL スキームを使ってスクリプトを実行
+      const fileMakerURL = "fmquickstart://generalsalesmanaeger?script=IOS_ProcessBarcodeResult_back";  // FileMakerのスクリプトを実行
+      window.location.href = fileMakerURL;  // FileMaker Go に URL スキームを送信
     }
 
     // バーコードを検出して、音を鳴らし、FileMakerに結果を渡す
@@ -115,8 +111,10 @@
         // バーコードがスキャンされた音を鳴らす
         playScanSound();
 
-        // スキャン結果をFileMakerに送信
-        FileMaker.PerformScript("IOS_ProcessBarcodeResult_item", code.data);  // スクリプト名とともにスキャン結果を渡す
+        // FileMaker Go の URL スキームを使ってスクリプトを実行
+        const fileMakerURL = `fmquickstart://generalsalesmanaeger?script=IOS_ProcessBarcodeResult_item&param=${code.data}`;  // バーコードデータをパラメータとして送信
+        window.location.href = fileMakerURL;  // FileMaker Go に URL スキームを送信
+
         alert("バーコード読み取り成功: " + code.data);
       } else {
         requestAnimationFrame(scanBarcode);  // バーコードが見つからなかったら再試行
