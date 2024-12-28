@@ -68,25 +68,23 @@
 
   <script src="https://unpkg.com/@zxing/library@0.18.6/dist/index.min.js"></script>
   <script>
-    // カメラデバイスをリストして、背面カメラを選択
+    // カメラデバイスをリストして最初のビデオデバイスを選択
     navigator.mediaDevices.enumerateDevices()
       .then(devices => {
         let videoDeviceId = null;
-        console.log(devices); // デバイス情報をコンソールで確認
+
+        // ビデオデバイスを探索
         devices.forEach(device => {
           if (device.kind === 'videoinput') {
-            console.log(device);  // 各デバイスの詳細を表示
-            if (device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear')) {
-              videoDeviceId = device.deviceId; // 背面カメラを選択
-            }
+            videoDeviceId = device.deviceId; // 最初に見つかったビデオデバイスを選択
           }
         });
 
         if (videoDeviceId) {
           startCamera(videoDeviceId);
         } else {
-          console.error("背面カメラが見つかりませんでした。");
-          alert("背面カメラが見つかりませんでした。");
+          console.error("カメラが見つかりませんでした。");
+          alert("カメラが見つかりませんでした。");
         }
       })
       .catch(error => {
