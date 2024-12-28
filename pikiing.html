@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>バーコードスキャン</title>
   <style>
-    /* 背景色とレイアウト調整 */
     body {
       margin: 0;
       padding: 0;
@@ -16,7 +15,6 @@
       height: 100vh;
     }
 
-    /* カメラ映像をフル画面表示 */
     video {
       width: 100%;
       height: 100%;
@@ -26,7 +24,6 @@
       left: 0;
     }
 
-    /* 「商品ラベルを読み込んで下さい」のメッセージ */
     #message {
       position: absolute;
       top: 50%;
@@ -40,7 +37,6 @@
       z-index: 10;
     }
 
-    /* 中止ボタン */
     #cancelButton {
       background-color: red;
       color: white;
@@ -57,25 +53,28 @@
 </head>
 <body>
 
-  <!-- 商品ラベル読み込みのメッセージ -->
   <div id="message">商品ラベルを読み込んでください</div>
 
-  <!-- カメラ映像を表示するためのvideoタグ -->
   <video id="video" autoplay></video>
 
-  <!-- 中止ボタン -->
   <button id="cancelButton" onclick="cancelScan()">中止</button>
 
   <script>
-    // スキャン中のフラグ
     let isScanning = true;
+
+    // カメラデバイスのIDを表示
+    navigator.mediaDevices.enumerateDevices().then(devices => {
+        devices.forEach(device => {
+            console.log(device.kind + ": " + device.label + " id = " + device.deviceId);
+        });
+    });
 
     // 背面カメラを選択して起動する関数
     function startCamera() {
       navigator.mediaDevices.enumerateDevices().then(devices => {
         let videoDeviceId = null;
 
-        // カメラデバイスを見つけて背面カメラを選択
+        // 「バック」や「rear」などを含むカメラを探す
         devices.forEach(device => {
           if (device.kind === 'videoinput') {
             if (device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear')) {
@@ -91,68 +90,4 @@
               deviceId: videoDeviceId
             }
           }).then(function(stream) {
-            const video = document.getElementById('video');
-            video.srcObject = stream;
-            video.play();
-            scanBarcode();  // カメラが起動したらスキャンを開始
-          }).catch(function(error) {
-            alert("カメラの取得に失敗しました。エラー: " + error.message);
-          });
-        } else {
-          alert("背面カメラが見つかりませんでした。");
-        }
-      }).catch(function(error) {
-        alert("デバイスの取得に失敗しました。エラー: " + error.message);
-      });
-    }
-
-    // 中止ボタンが押された時の処理
-    function cancelScan() {
-      isScanning = false;  // スキャン停止
-      alert("スキャンが中止されました。");
-      FileMaker.PerformScript("IOS_ProcessBarcodeResult_back");  // FileMakerスクリプトに通知
-    }
-
-    // バーコードを検出して、音を鳴らし、FileMakerに結果を渡す
-    function scanBarcode() {
-      if (!isScanning) return;  // スキャンが停止していたら処理しない
-
-      // Canvasにカメラのフレームを描画してバーコードを検出
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const video = document.getElementById('video');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, canvas.width, canvas.height);
-
-      // バーコードが検出された場合
-      if (code) {
-        // バーコードがスキャンされた音を鳴らす
-        playScanSound();
-
-        // スキャン結果をFileMakerに送信
-        FileMaker.PerformScript("IOS_ProcessBarcodeResult_item", code.data);  // スクリプト名とともにスキャン結果を渡す
-        alert("バーコード読み取り成功: " + code.data);
-      } else {
-        requestAnimationFrame(scanBarcode);  // バーコードが見つからなかったら再試行
-      }
-    }
-
-    // バーコードスキャン成功時に音を鳴らす
-    function playScanSound() {
-      const audio = new Audio('https://www.soundjay.com/button/beep-07.wav');  // 自分の音声ファイルに変更可能
-      audio.play();
-    }
-
-    // 最初にカメラを起動
-    startCamera();
-  </script>
-
-  <!-- Barcode scanning library -->
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-</body>
-</html>
-
+            const video = 
